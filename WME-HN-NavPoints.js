@@ -2,7 +2,7 @@
 // @name            WME HN NavPoints (beta)
 // @namespace       https://greasyfork.org/users/166843
 // @description     Shows navigation points of all house numbers in WME
-// @version         2023.09.29.01
+// @version         2024.08.18.01
 // @author          dBsooner
 // @grant           GM_xmlhttpRequest
 // @connect         greasyfork.org
@@ -36,7 +36,7 @@
         _BETA_DL_URL = 'YUhSMGNITTZMeTluY21WaGMzbG1iM0pyTG05eVp5OXpZM0pwY0hSekx6TTVNRFUzTXkxM2JXVXRhRzR0Ym1GMmNHOXBiblJ6TFdKbGRHRXZZMjlrWlM5WFRVVWxNakJJVGlVeU1FNWhkbEJ2YVc1MGN5VXlNQ2hpWlhSaEtTNTFjMlZ5TG1weg==',
         _ALERT_UPDATE = true,
         _SCRIPT_VERSION = GM_info.script.version.toString(),
-        _SCRIPT_VERSION_CHANGES = ['CHANGE: WME beta release v2.188 compatibility.'],
+        _SCRIPT_VERSION_CHANGES = ['CHANGE: WME beta release v2.242 compatibility.'],
         _DEBUG = /[βΩ]/.test(_SCRIPT_SHORT_NAME),
         _LOAD_BEGIN_TIME = performance.now(),
         _elems = {
@@ -470,6 +470,15 @@
         Promise.resolve();
     }
 
+    function getOLMapExtent() {
+        let extent = W.map.getExtent();
+        if (Array.isArray(extent)) {
+            extent = new OpenLayers.Bounds(extent);
+            extent.transform('EPSG:4326', 'EPSG:3857');
+        }
+        return extent;
+    }
+
     function processSegs(action, arrSegObjs, processAll = false, retry = 0) {
     /* As of 2020.06.08 (sometime before this date) updatedOn does not get updated when updating house numbers. Looking for a new
      * way to track which segments have been updated most recently to prevent a total refresh of HNs after an event.
@@ -482,7 +491,7 @@
         if (!arrSegObjs || (arrSegObjs.length === 0) || (W.map.getOLMap().getZoom() < _settings.disableBelowZoom) || preventProcess())
             return;
         doSpinner('processSegs', true);
-        const eg = W.map.getExtent().toGeometry(),
+        const eg = getOLMapExtent().toGeometry(),
             findObjIndex = (array, fldName, value) => array.map((a) => a[fldName]).indexOf(value),
             processError = (err, chunk) => {
                 logDebug(`Retry: ${retry}`);
